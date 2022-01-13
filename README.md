@@ -1,4 +1,4 @@
-# ruby-notes
+# ruby notes
 Notes for Ruby
 - [Documentation](https://ruby-lang.org)
 ### IRB (interactive ruby shell)
@@ -14,6 +14,9 @@ str.upcase
 ...
 (q to qiut)
 ```
+
+# Ruby on Rails Tutorial
+The full tutorial is [here](https://guides.rubyonrails.org/getting_started.html).
 ### Ruby projects File Structure
 | File/Folder	| Purpose |
 | --- | :--- |
@@ -34,3 +37,44 @@ README.md |	This is a brief instruction manual for your application. You should 
 ***vendor/*** |	A place for all third-party code. In a typical Rails application this includes vendored gems.
 .gitignore	| This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files for more info about ignoring files](https://help.github.com/articles/ignoring-files).
 .ruby-version	| This file contains the default Ruby version.
+
+### Starting Ruby server
+```
+$ bin/rails server
+```
+This will start up Puma, a web server distributed with Rails by default. To see your application in action, open a browser window and navigate to http://localhost:3000. 
+When you want to stop the web server, hit **Ctrl+C** in the terminal window where it's running. 
+In the development environment, Rails does not generally require you to restart the server; changes you make in files will be automatically picked up by the server.
+
+## To Say "Hello", Rails
+You need to create at minimum ***a route, a controller with an action, and a view***.  
+- **A route** maps a request to a controller action.  
+- **A controller action** performs the necessary work to handle the request, and prepares any data for the view.  
+- **A view** displays data in a desired format. 
+
+In terms of implementation:  
+- **Routes** - are _rules_ written in a Ruby [DSL (Domain-Specific Language)](https://en.wikipedia.org/wiki/Domain-specific_language).  
+- **Controllers** - are Ruby _classes_, and their ***public methods*** are *actions*.  
+- **Views** - are *templates*, usually written in a mixture of HTML and Ruby.  
+## Declaring a route
+Let's start by adding a route to our routes file, `config/routes.rb`
+```ruby
+Rails.application.routes.draw do
+  get "/articles", to: "articles#index"
+
+  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+end
+```
+The route above declares that `GET /articles` requests are mapped to the `index` action of `ArticlesController`.
+
+To create `ArticlesController` and its `index` action, we'll run the controller generator (with the `--skip-routes option` because we already have an appropriate route):
+```
+$ bin/rails generate controller Articles index --skip-routes
+```
+Rails will create several files for you. The most important of there is the controller file `app/controllers/articles_controller.rb`
+``` rails
+class ArticlesController < ApplicationController
+  def index
+  end
+end
+```
