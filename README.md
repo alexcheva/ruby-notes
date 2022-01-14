@@ -78,3 +78,55 @@ class ArticlesController < ApplicationController
   end
 end
 ```
+To learn more about routing, see [Rails Routing from the Outside In](https://guides.rubyonrails.org/routing.html).
+
+## Genarating a model
+**A model** is a *Ruby class* that is used to represent data. Additionally, models can interact with the application's database through a feature of Rails called ***Active Record***.
+
+To define a model, we will use the model generator:
+
+```
+$ bin/rails generate model Article title:string body:text
+```
+
+## Using a Model to interact with the database
+```
+$ bin/rails console
+```
+At the irb prompt, we can initialize a new `Article` object:
+
+```ruby
+irb> article = Article.new(title: "Hello Rails", body: "I am on Rails!")
+...
+irb> article.save
+```
+To fetch this article from the database, we can call **.find** on the model and pass the `id` as an argument or use **.all**
+``` ruby
+irb> Article.find(1)
+...
+irb> Article.all
+```
+**.all** This method returns an [ActiveRecord::Relation](https://api.rubyonrails.org/v7.0.1/classes/ActiveRecord/Relation.html) object, which you can think of as a super-powered array.
+
+To learn more about models, see [Active Record Basics](https://guides.rubyonrails.org/active_record_basics.html) and [Active Record Query Interface](https://guides.rubyonrails.org/active_record_querying.html).
+
+## Showing the single article
+Open `config/routes.rb`, and insert the last route shown here:
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+
+  get "/articles", to: "articles#index"
+  get "/articles/:id", to: "articles#show"
+end
+```
+Let's add that `show` *action* now, below the index action in `app/controllers/articles_controller.rb`:
+```ruby
+class ArticlesController < ApplicationController
+...
+  def show
+    @article = Article.find(params[:id])
+  end
+end
+
+```
