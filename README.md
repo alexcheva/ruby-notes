@@ -263,4 +263,21 @@ The `edit` action fetches the article from the database, and stores it in `@arti
 
 The `update` action (re-)fetches the article from the database, and attempts to update it with the submitted form data filtered by `article_params`. If no validations fail and the update is successful, the action redirects the browser to the article's page. Else, the action redisplays the form — with error messages — by rendering `app/views/articles/edit.html.erb`.
 
+...
 
+
+## Adding a second Model
+The second model will handle comments on articles.
+
+### Generating a Model
+This time we'll create a `Comment` model to hold a reference to an article. Run this command in your terminal:
+```
+$ bin/rails generate model Comment commenter:string body:text article:references
+```
+This command will generate four files:
+File |	Purpose
+--- | ---
+db/migrate/20140120201010_create_comments.rb	| Migration to create the comments table in your database (your name will include a different timestamp)
+app/models/comment.rb	| The Comment model
+test/models/comment_test.rb |	Testing harness for the comment model
+test/fixtures/comments.yml |	Sample comments for use in testing
