@@ -218,4 +218,49 @@ class ArticlesController < ApplicationController
   end
 end
 ```
+To finish up, let's link to that page from the bottom of `app/views/articles/index.html.erb`:
+```ruby
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <%= link_to article.title, article %>
+    </li>
+  <% end %>
+</ul>
+
+<%= link_to "New Article", new_article_path %>
+```
+## Updating an Article
+These steps are conventionally handled by a controller's `edit` and `update` actions. Let's add a typical implementation of these actions to `app/controllers/articles_controller.rb`, below the `create` action:
+```ruby
+class ArticlesController < ApplicationController
+ ...
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:id])
+
+    if @article.update(article_params)
+      redirect_to @article
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :body)
+    end
+end
+
+```
+The `edit` action fetches the article from the database, and stores it in `@article` so that it can be used when building the form. By default, the edit action will render `app/views/articles/edit.html.erb`.
+
+The `update` action (re-)fetches the article from the database, and attempts to update it with the submitted form data filtered by `article_params`. If no validations fail and the update is successful, the action redirects the browser to the article's page. Else, the action redisplays the form — with error messages — by rendering `app/views/articles/edit.html.erb`.
+
 
