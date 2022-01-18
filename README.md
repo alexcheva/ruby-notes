@@ -130,3 +130,92 @@ class ArticlesController < ApplicationController
 end
 
 ```
+Let's create `app/views/articles/show.html.erb`, with the following contents:
+```<h1><%= @article.title %></h1>
+<p><%= @article.body %></p>
+```
+We'll link each article's title in `app/views/articles/index.html.erb` to its page:
+```
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <a href="/articles/<%= article.id %>">
+        <%= article.title %>
+      </a>
+    </li>
+  <% end %>
+</ul>
+
+```
+## Resourceful Routing
+Rails provides a routes method named [resources](https://api.rubyonrails.org/v7.0.1/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-resources) that maps all of the conventional routes for a collection of resources, such as articles. Let's replace the two get routes in `config/routes.rb` with resources:
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+
+  resources :articles
+end
+
+```
+We can inspect what routes are mapped by running the `bin/rails routes` command:
+```
+$ bin/rails routes
+...
+Prefix Verb   URI Pattern                  Controller#Action
+        root GET    /                            articles#index
+    articles GET    /articles(.:format)          articles#index
+ new_article GET    /articles/new(.:format)      articles#new
+     article GET    /articles/:id(.:format)      articles#show
+             POST   /articles(.:format)          articles#create
+edit_article GET    /articles/:id/edit(.:format) articles#edit
+             PATCH  /articles/:id(.:format)      articles#update
+             DELETE /articles/:id(.:format)      articles#destroy
+```
+The `resources` method also sets up ___URL and path helper methods___ that we can use to keep our code from depending on a specific route configuration. The values in the "Prefix" column above plus a suffix of `_url` or `_path` form the names of these helpers. For example, the `article_path` helper returns `"/articles/#{article.id}"` when given an article. We can use it to tidy up our links in `app/views/articles/index.html.erb`:
+``` ruby
+<h1>Articles</h1>
+
+<ul>
+  <% @articles.each do |article| %>
+    <li>
+      <a href="<%= article_path(article) %>">
+        <%= article.title %>
+      </a>
+    </li>
+  <% end %>
+</ul>
+
+```
+To learn more about __routing__, see [Rails Routing from the Outside In](https://guides.rubyonrails.org/routing.html).  
+
+## Creating a New Article
+
+In a Rails application, these steps are conventionally handled by a controller's `new` and `create` actions. Let's add a typical implementation of these actions to `app/controllers/articles_controller.rb`, below the show action:
+```ruby
+class ArticlesController < ApplicationController
+  def index
+    @articles = Article.all
+  end
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(title: "...", body: "...")
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+end
+```
+
