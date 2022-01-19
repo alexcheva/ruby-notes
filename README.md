@@ -281,3 +281,102 @@ db/migrate/20140120201010_create_comments.rb	| Migration to create the comments 
 app/models/comment.rb	| The Comment model
 test/models/comment_test.rb |	Testing harness for the comment model
 test/fixtures/comments.yml |	Sample comments for use in testing
+
+```
+$ bin/rails db:migrate
+```
+
+### Associating Models
+Active Record associations let you easily declare the relationship between two models. In the case of comments and articles, you could write out the relationships this way:
+
+- Each comment belongs to one article.
+- One article can have many comments.
+In fact, this is very close to the syntax that Rails uses to declare this association. You've already seen the line of code inside the `Comment` model (`app/models/comment.rb`) that makes each comment belong to an Article:
+```ruby
+class Comment < ApplicationRecord
+  belongs_to :article
+end
+```
+
+You'll need to edit `app/models/article.rb` to add the other side of the association:
+```ruby
+class Article < ApplicationRecord
+  has_many :comments
+
+  validates :title, presence: true
+  validates :body, presence: true, length: { minimum: 10 }
+end
+```
+These two declarations enable a good bit of automatic behavior. For example, if you have an instance variable `@article` containing an article, you can retrieve all the comments belonging to that article as an array using `@article.comments`.  
+
+For more information on Active Record associations, see the [Active Record Associations guide](https://guides.rubyonrails.org/association_basics.html).
+
+### Adding a Route for Comments
+As with the `articles` controller, we will need to add a route so that Rails knows where we would like to navigate to see comments. Open up the `config/routes.rb` file again, and edit it as follows:
+
+``` ruby
+Rails.application.routes.draw do
+  root "articles#index"
+
+  resources :articles do
+    resources :comments
+  end
+end
+```
+This creates comments as a _nested resource_ within `articles`. This is another part of capturing the hierarchical relationship that exists between articles and comments.  
+
+### Generating a Controller
+With the model in hand, you can turn your attention to creating a matching controller. Again, we'll use the same generator we used before:
+```
+bin/rails generate controller Comments
+```
+This creates four files and one empty directory:
+
+File/Directory	| Purpose
+--- | ---
+app/controllers/comments_controller.rb	| The Comments controller
+app/views/comments/	| Views of the controller are stored here
+test/controllers/comments_controller_test.rb |	The test for the controller
+app/helpers/comments_helper.rb	| A view helper file
+app/assets/stylesheets/comments.scss	| Cascading style sheet for the controller
+
+So first, we'll wire up the Article show template (`app/views/articles/show.html.erb`) to let us make a new comment:
+
+``` ruby
+<h1><%= @article.title %></h1>
+...
+<h2>Add a comment:</h2>
+<%= form_with model: [ @article, @article.comments.build ] do |form| %>
+  <p>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
+  </p>
+  <p>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
+  </p>
+  <p>
+    <%= form.submit %>
+  </p>
+<% end %>
+```
+This adds a form on the `Article` show page that creates a new comment by calling the `CommentsController` `create` action. The `form_with` call here uses an array, which will build a nested route, such as `/articles/1/comments`.
+
+Let's wire up the create in `app/controllers/comments_controller.rb`:
+
+```ruby
+class CommentsController < ApplicationController
+  def create
+    @article = Article.find(params[:article_id])
+    @comment = @article.comments.create(comment_params)
+    redirect_to article_path(@article)
+  end
+
+  private
+    def comment_params
+      params.require(:comment).permit(:commenter, :body)
+    end
+end
+```
+
+
